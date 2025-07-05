@@ -8,10 +8,13 @@ class Transaksi extends CI_Controller
         $this->load->model('transaksi_model');
         $this->load->model('customer_model');
         $this->load->model('payment_model');
+        $this->load->model('tx_model');
         $this->load->model('voucher_model');
         $this->load->model('categoryCust_model');
         $this->load->model('categoryProduk_model');
+        $this->load->model('cicilan_model');
         $this->load->model('user_model');
+        $this->load->model('brand_model');
         $this->load->library('form_validation');
         $this->load->library('session');
         $this->load->helper('auth'); // Memuat helper untuk pengecekan login
@@ -27,8 +30,12 @@ class Transaksi extends CI_Controller
     {
         $data['judul'] = 'Detail Order';
         $data['transaksi'] = $this->transaksi_model->get_transaksi(); // Ambil semua transaksi
-        $data['vouchers'] = $this->transaksi_model->get_vouchers(); // Ambil voucher
+        $data['vouchers'] = $this->transaksi_model->get_vouchers(); // Ambil vouchers
 
+        // echo '<pre>';
+        //     print_r($data['transaksi']);
+        // echo '</pre>';
+        // exit;
 
         foreach ($data['transaksi'] as $order) {
             if (!empty($order['idvoucher'])) { // Periksa jika ada data voucher
@@ -53,6 +60,7 @@ class Transaksi extends CI_Controller
         $data['start_date'] = $this->input->get('start_date');
         $data['end_date'] = $this->input->get('end_date');
 
+        //TODO : Filter by Range Date
         if ($data['start_date'] && $data['end_date']) {
             $data['transaksi'] = $this->transaksi_model->get_transaksi_by_date($data['start_date'], $data['end_date']);
         }
@@ -85,7 +93,32 @@ class Transaksi extends CI_Controller
         $this->load->view('template/header', $data);
         $this->load->view('template/sidebar', $data);
         $this->load->view('transaksi/tambah', $data); // Form tambah data
-        $this->load->view('template/footer');
+    }
+
+    public function getBrandsByCategory()
+    {
+        $categoryId = $this->input->post('idCategoryProduk');
+        $brands = $this->brand_model->getBrandByCategoryId($categoryId);
+        
+        echo json_encode($brands);
+    }
+
+    public function searchCustomerPhone()
+    {
+        $keyword = $this->input->get('term');
+        $result = $this->customer_model->getCustomerByPhoneNumber($keyword);
+        
+        $suggestions = [];
+        foreach ($result as $row) {
+            $suggestions[] = [
+                'PhoneNumber' => $row['PhoneNumber'],
+                'FirstName' => $row['FirstName'],
+                'LastName' => $row['LastName'],
+                'Alamat' => $row['Alamat'],
+            ];
+        }
+
+        echo json_encode($suggestions);
     }
 
     public function simpanCust($phonenumber)
@@ -152,22 +185,38 @@ class Transaksi extends CI_Controller
         }
     }
 
+    public function generateLastRandomCode() {
+        $last_code = $this->transaksi_model->getLastTransactionCode();
+        $last_alpha = $last_code ? substr($last_code, -3) : null;
+
+        $random_code = $this->generate_random_code($last_alpha);
+
+        echo json_encode(['kode' => $random_code]);
+    }
+
     public function simpan()
     {
         $data['judul'] = 'Simpan';
         $data['transaksi'] = $this->transaksi_model->get_transaksi();
         $data['voucher_options'] = $this->voucher_model->getAllvoucher();
+
+        // if (empty($this->input->post('Brand')) || empty($this->input->post('Brand')[0])) {
+        //     $this->form_validation->set_rules('dummyBrand', 'Brand', 'required');
+        // }
+        
+        // if (empty($this->input->post('idCategoryProduk')) || empty($this->input->post('idCategoryProduk')[0])) {
+        //     $this->form_validation->set_rules('dummyCategory', 'Category Produk', 'required');
+        // }
+
         // Validasi input form tambah transaksi
+        // $this->form_validation->set_rules('SKUName', 'Tipe', 'required');
+        // $this->form_validation->set_rules('QtyOrder', 'Qty Order', 'required');
+        // $this->form_validation->set_rules('BasePrice', 'Base Price', 'required');
+        $this->form_validation->set_rules('idCategoryCust', 'Category Customer', 'required');
         $this->form_validation->set_rules('phonenumber', 'Phone Number', 'required|numeric');
-        $this->form_validation->set_rules('kd_transaksi', 'Kode Transaksi', 'required');
         $this->form_validation->set_rules('dateTransaction', 'dateTransaction', 'required');
         $this->form_validation->set_rules('IdSales', 'ID Sales', 'required');
-        $this->form_validation->set_rules('Brand', 'Brand', 'required');
-        $this->form_validation->set_rules('SKUName', 'SKU Name', 'required');
-        $this->form_validation->set_rules('idCategoryProduk', 'Category Produk', 'required');
-        $this->form_validation->set_rules('idCategoryCust', 'Category Customer', 'required');
-        $this->form_validation->set_rules('QtyOrder', 'Qty Order', 'required|integer');
-        $this->form_validation->set_rules('BasePrice', 'Base Price', 'required|numeric');
+        $this->form_validation->set_rules('kd_transaksi', 'kd_transaksi', 'required');
         $this->form_validation->set_rules('Discount', 'Discount', 'required|numeric');
         $this->form_validation->set_rules('AfterDisc', 'After Discount', 'required|numeric');
         $this->form_validation->set_rules('pointclaim', 'Claim Point', 'numeric');
@@ -179,45 +228,77 @@ class Transaksi extends CI_Controller
             redirect('transaksi/tambah');
         } else {
             $customer = $this->customer_model->get_customer_by_phone($this->input->post('phonenumber'));
+    
+            // get last code
+            // $last_code = $this->transaksi_model->getLastTransactionCode();
+            // $last_alpha = $last_code ? substr($last_code, -3) : null;
 
-            if ($customer) {
-                $data_order = [
-                    'idCustomer' => $customer['idCustomer'],
-                    'kd_transaksi' => $this->input->post('kd_transaksi'),
-                    'dateTransaction' => $this->input->post('dateTransaction'),
-                    'IdSales' => $this->input->post('IdSales'),
-                    'idMethode' => $this->input->post('idMethode'),
-                    'Brand' => $this->input->post('Brand'),
-                    'SKUName' => $this->input->post('SKUName'),
-                    'QtyOrder' => $this->input->post('QtyOrder'),
-                    'BasePrice' => $this->input->post('BasePrice'),
-                    'BeforeDisc' => $this->input->post('BasePrice'),
-                    'Discount' => $this->input->post('Discount'),
-                    'AfterDisc' => $this->input->post('AfterDisc'),
-                    'Point' => $this->input->post('Point'),
-                    'pointclaim' => $this->input->post('pointclaim'),
-                    'idCategoryCust' => $this->input->post('idCategoryCust'),
-                    'idCategoryProduk' => $this->input->post('idCategoryProduk'),
-                    'Keterangan' => $this->input->post('Keterangan'),
-                ];
+            $alamat = $this->input->post('alamatPilihan') === 'custom'
+                        ? $this->input->post('Alamat')
+                        : $customer['Alamat'];
+            $brand = $this->input->post('Brand');
+            $category = $this->input->post('idCategoryProduk');
+            $tipe = $this->input->post('SKUName');
+            $qty = $this->input->post('QtyOrder');
+            $basePrice = $this->input->post('BasePrice');
+            $methodePembayaran = $this->input->post('idMethode');
 
-                // Proses Voucher (Multi-Select)
-                $idVoucherArray = $this->input->post('idvoucher'); // Dari form multi-select
-                if (is_array($idVoucherArray) && !empty($idVoucherArray)) {
-                    $data_order['idvoucher'] = implode(",", $idVoucherArray); // Gabungkan menjadi string
-                } else {
-                    $data_order['idvoucher'] = "Tidak Ada Voucher"; // Atur default jika tidak ada voucher yang dipilih
-                }
+            if ($customer && is_array($brand) && is_array($category) && count($brand) === count($category)) {
+                for ($i = 0; $i < count($brand); $i++) {
 
-                // var_dump($data_order);
-                // die;
+                    $data_order = [
+                        'idCustomer' => $customer['idCustomer'],
+                        'kd_transaksi' => $this->input->post('kd_transaksi'),
+                        'dateTransaction' => $this->input->post('dateTransaction'),
+                        'IdSales' => $this->input->post('IdSales'),
+                        'Brand' => $brand[$i],
+                        'SKUName' => $tipe[$i],
+                        'QtyOrder' => $qty[$i],
+                        'BasePrice' => $basePrice[$i],
+                        'BeforeDisc' => $basePrice[$i],
+                        'Discount' => $this->input->post('Discount'),
+                        'AfterDisc' => $this->input->post('AfterDisc'),
+                        'Point' => $this->input->post('Point'),
+                        'pointclaim' => $this->input->post('pointclaim'),
+                        'Alamat' => $alamat,
+                        'idCategoryCust' => $this->input->post('idCategoryCust'),
+                        'idCategoryProduk' => $category[$i],
+                        'Keterangan' => $this->input->post('Keterangan'),
+                        'idMethode' => $methodePembayaran
+                    ];
+    
+                    // Proses Voucher (Multi-Select)
+                    $idVoucherArray = $this->input->post('idvoucher'); // Dari form multi-select
+                    if (is_array($idVoucherArray) && !empty($idVoucherArray)) {
+                        $data_order['idvoucher'] = implode(",", $idVoucherArray); // Gabungkan menjadi string
+                    } else {
+                        $data_order['idvoucher'] = "Tidak Ada Voucher"; // Atur default jika tidak ada voucher yang dipilih
+                    }
 
-                // Simpan ke database
-                if ($this->transaksi_model->simpan($data_order)) {
-                    $this->session->set_flashdata('success', 'Transaksi berhasil disimpan!');
-                } else {
-                    $this->session->set_flashdata('error', 'Gagal menyimpan transaksi.');
-                }
+                    $insertOrderId = $this->transaksi_model->simpan($data_order);
+                    
+                    // create detail _transaction
+                    $tx['idOrder'] = $insertOrderId;
+                    $tx['status_shipping'] = 'pending';
+                    $this->tx_model->createDetailOrder($tx);
+
+
+                    // TODO: idMethodePembayaran harus di sesuaikan
+                    if ($insertOrderId && $methodePembayaran == 10) {
+                        $this->cicilan_model->createCicilan([
+                            'idOrder' => $insertOrderId,
+                            'totalCicilan' => $this->input->post('AfterDisc'),
+                            'jumlahAngsuran' => 0,
+                            'sisaCicilan' => $this->input->post('AfterDisc'),
+                            'jatuhTempo' => date('Y-m-d', strtotime('+12 month')),
+                            'status' => 'BELUM_LUNAS',
+                            'idCustomer' => $customer['idCustomer'],
+                        ]);
+                        $this->session->set_flashdata('success', 'Transaksi berhasil disimpan!');
+                    } else {
+                        $this->session->set_flashdata('error', 'Gagal menyimpan transaksi.');
+                    }
+                } 
 
                 redirect('transaksi');
             } else {
@@ -230,10 +311,8 @@ class Transaksi extends CI_Controller
     public function search_transaksi()
     {
         $data['judul'] = 'Transaksi';
-        // Terima parameter pencarian dari input pengguna
         $keyword = $this->input->post('keyword');
-
-        // Panggil model untuk mendapatkan data transaksi dengan pencarian
+        
         $this->load->model('transaksi_model'); // Sesuaikan dengan nama model Anda
         $data['transaksi'] = $this->transaksi_model->search($keyword);
 
@@ -325,4 +404,39 @@ class Transaksi extends CI_Controller
             redirect('transaksi');
         }
     }
+
+    public function generate_random_code($last_alpha_code = 'AAA')
+    {
+        // Ambil tanggal sekarang
+        $bulan = date('m'); // ex: 04
+        $hari = date('d');  // ex: 24
+        $tahun = date('y'); // ex: 25
+
+
+        // Hitung huruf selanjutnya
+        $next_alpha = $this->next_alpha_code($last_alpha_code);
+
+        // Gabungkan jadi kode
+        return $bulan . $hari . $tahun . $next_alpha;
+    }
+
+    // Fungsi menghitung urutan abjad selanjutnya (AAA, AAB, ..., AAZ, ABA, ..., ZZZ)
+    private function next_alpha_code($code)
+    {
+        $code = strtoupper($code); // Pastikan huruf besar
+        $chars = str_split($code);
+
+        for ($i = 2; $i >= 0; $i--) {
+            if ($chars[$i] === 'Z') {
+                $chars[$i] = 'A';
+            } else {
+                $chars[$i] = chr(ord($chars[$i]) + 1);
+                break;
+            }
+        }
+
+        return implode('', $chars);
+    }
+
+
 }

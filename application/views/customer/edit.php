@@ -43,6 +43,16 @@
                 <input type="text" class="form-control" id="instagram" name="instagram" value="<?= $Customer['instagram']; ?>">
                 <?= form_error('Customer', '<small class="text-danger">', '</small>'); ?>
               </div>
+              <div class="form-group">
+                <label for="Alamat">Alamat</label>
+                <input type="text" class="form-control" id="Alamat" name="Alamat" value="<?= $Customer['Alamat']; ?>">
+                <?= form_error('Customer', '<small class="text-danger">', '</small>'); ?>
+              </div>
+              <div class="form-group">
+                <label for="KodePos">KodePos</label>
+                <input type="text" class="form-control" id="KodePos" name="KodePos" value="<?= $Customer['KodePos']; ?>">
+                <?= form_error('Customer', '<small class="text-danger">', '</small>'); ?>
+              </div>
               <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
               <a href="<?= base_url('Customer'); ?>" class="btn btn-secondary">Cancel</a>
             </form>

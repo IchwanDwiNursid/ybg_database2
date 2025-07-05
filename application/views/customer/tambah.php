@@ -39,9 +39,16 @@
                 <label for="instagram">Instagram</label>
                 <input type="text" class="form-control" id="Instagram" name="Instagram" placeholder="@example">
               </div>
+              <div class="form-group">
+                <label for="Alamat">Alamat</label>
+                <input type="text" class="form-control" id="Alamat" name="Alamat">
+              </div>
+              <div class="form-group">
+                <label for="KodePos">KodePos</label>
+                <input type="text" class="form-control" id="KodePos" name="KodePos">
+              </div>
               <button type="submit" class="btn btn-primary">Submit</button>
             </div>
-
           </form>
         </div>
         <!-- /.card -->

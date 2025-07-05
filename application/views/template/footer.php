@@ -30,46 +30,6 @@
     $('.select2').select2()
   });
 </script>
-<script>
-  function calculateDiscount() {
-    var voucherSelect = document.getElementById('idvoucher');
-    var options = voucherSelect.options;
-    var totalDiscount = 0;
-
-    for (var i = 0; i < options.length; i++) {
-      if (options[i].selected) {
-        var nominal = parseFloat(options[i].getAttribute('data-nominal'));
-        totalDiscount += nominal;
-      }
-    }
-
-    document.getElementById('Discount').value = totalDiscount;
-
-    var basePrice = parseInt(document.getElementById('BasePrice').value);
-    var voucherSelect = document.getElementById('idvoucher');
-    var discount = 0;
-
-    if (basePrice === "") {
-      voucherSelect.disabled = true;
-    } else {
-      voucherSelect.disabled = false;
-    }
-
-    if (basePrice && voucherSelect.selectedOptions.length > 0) {
-      var selectedOptions = Array.from(voucherSelect.selectedOptions);
-      selectedOptions.forEach(function(option) {
-        discount += parseInt(option.getAttribute('data-nominal'));
-      });
-
-      document.getElementById('Discount').value = discount;
-      var afterDisc = basePrice - discount;
-      document.getElementById('AfterDisc').value = afterDisc;
-    } else {
-      document.getElementById('Discount').value = 0;
-      document.getElementById('AfterDisc').value = basePrice;
-    }
-  }
-</script>
 </body>
 
 </html>

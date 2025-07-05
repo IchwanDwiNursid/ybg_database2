@@ -94,6 +94,14 @@
               </a>
             </li>
             <li class="nav-item">
+              <a href=" <?= base_url('tx') ?>" class="nav-link">
+                <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                <p>
+                  Transaction Details
+                </p>
+              </a>
+            </li>
+            <li class="nav-item">
               <a href="<?= base_url('customer') ?>" class="nav-link">
                 <i class="nav-icon fas fa-address-card"></i>
                 <p>
@@ -101,7 +109,6 @@
                 </p>
               </a>
             </li>
-        
             <li class="nav-item">
               <a href="<?= base_url('voucher') ?>" class="nav-link">
                 <i class="nav-icon fas fa-percent"></i>
@@ -127,6 +134,14 @@
               </a>
             </li>
             <li class="nav-item">
+              <a href="<?= base_url('/cicilan') ?>" class="nav-link">
+                <i class="nav-icon fas fa-hand-holding-usd"></i>
+                <p>
+                  Cicilan
+                </p>
+              </a>
+            </li>
+            <li class="nav-item">
               <a href="<?= base_url('/payment') ?>" class="nav-link">
                 <i class="nav-icon fas fa-money-bill"></i>
                 <p>
@@ -139,6 +154,22 @@
                 <i class="nav-icon fas fa-users"></i>
                 <p>
                   Users
+                </p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= base_url('/nurturing') ?>" class="nav-link">
+                <i class="nav-icon fas fa-heart"></i>
+                <p>
+                  Nurturing
+                </p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="<?= base_url('/brand') ?>" class="nav-link">
+                <i class="nav-icon fas fa-tags"></i>
+                <p>
+                  Brand
                 </p>
               </a>
             </li>

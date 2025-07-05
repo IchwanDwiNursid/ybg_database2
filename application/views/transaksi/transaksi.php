@@ -9,7 +9,7 @@
           <div class="card-header">
             <form method="post" action="<?php echo base_url('transaksi/search_transaksi'); ?>" class="float-center mx-5">
               <div class="input-group">
-                <input type="text" name="keyword" class="form-control" placeholder="Search by idtransaction number, brand, or SKU">
+                <input type="text" name="keyword" class="form-control" autocomplete="off" placeholder="Search by idtransaction number, brand, or SKU">
                 <div class="input-group-append">
                   <button class="btn btn-primary" type="submit" id="button-addon2"><i class="fas fa-search"></i></button>
                 </div>
@@ -31,7 +31,6 @@
                 <input type="date" class="form-control" name="end_date" placeholder="End Date" value="<?= isset($end_date) ? $end_date : '' ?>">
                 <button type="submit" class="btn btn-primary ml-2">Filter</button>
               </div>
-
             </form>
 
             <table id="example2" class="table table-responsive table-bordered table-striped table-hover">
@@ -53,7 +52,7 @@
                   <th>SA</th>
                   <th>Payment</th>
                   <th>Brand</th>
-                  <th>SKU</th>
+                  <th>Tipe</th>
                   <th>Category Produk</th>
                   <th>Qty</th>
                   <th>Base Price</th>
@@ -70,10 +69,13 @@
                 <?php if (!empty($transaksi)) : ?>
                   <?php $no = 1;
                   foreach ($transaksi as $order) : ?>
+                    <?php
+                      $isDeletable = empty($order['status']) || $order['status'] === 'LUNAS';
+                    ?>
                     <tr>
                       <td><?= $no++; ?></td>
                       <td><?= $order['No Transaksi']; ?></td>
-                      <td><?= $order['Tanggal']; ?></td>
+                      <td><?= date('d-m-Y', strtotime($order['Tanggal'])); ?></td>
                       <td><?= $order['Nama Customer']; ?></td>
                       <td><?= $order['Category Customer']; ?></td>
                       <td><?= $order['Sales Advisor']; ?></td>
@@ -91,7 +93,11 @@
                       <td><?= $order['Keterangan']; ?></td>
                       <td>
                         <a class="btn btn-warning" href="<?= base_url('transaksi/edit/' . $order['id']); ?>">Edit</a>
-                        <a class="btn btn-danger" onclick="return confirm('Yakin Hapus?')" href="<?= site_url('transaksi/delete/' . $order['id']); ?>">Delete</a>
+                        <a class="btn btn-danger <?= !$isDeletable ? 'disabled' : ''; ?>" 
+                          onclick="return <?= !$isDeletable ? 'false' : 'confirm(\'Yakin Hapus?\')'; ?>" 
+                          href="<?= !$isDeletable ? '#' : site_url('transaksi/delete/' . $order['id']); ?>">
+                          Delete
+                        </a>
                       </td>
                     </tr>
                   <?php endforeach; ?>

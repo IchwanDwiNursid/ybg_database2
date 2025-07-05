@@ -86,6 +86,8 @@ class Customer extends CI_Controller
         $this->form_validation->set_rules('Birthdate', 'Birthdate', 'required');
         $this->form_validation->set_rules('PhoneNumber', 'PhoneNumber', 'required|numeric');
         $this->form_validation->set_rules('instagram', 'instagram', 'required');
+        $this->form_validation->set_rules('Alamat', 'Alamat', 'required');
+        $this->form_validation->set_rules('KodePos', 'KodePos', 'required');
 
         if ($this->form_validation->run() == FALSE) {
             $this->session->set_flashdata('error', validation_errors());
@@ -119,13 +121,9 @@ class Customer extends CI_Controller
     public function detail($idCustomer)
     {
         $data['judul'] = 'Customer Detail';
-        // Load model
-        $this->load->model('customer_model');
 
-        // Ambil data customer
         try {
             $data['customer'] = $this->customer_model->get_customer_details($idCustomer);
-            
         } catch (ValueError $e) {
             $data['customer'] = null; // Menangani jika customer tidak ditemukan
         }

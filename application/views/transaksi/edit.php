@@ -14,7 +14,7 @@
 
                         <div class="form-group">
                             <label for="kd_transaksi">Kode Transaksi</label>
-                            <input type="text" class="form-control" id="kd_transaksi" name="kd_transaksi" value="<?php echo $customer['kd_transaksi']; ?>">
+                            <input type="text" class="form-control" id="kd_transaksi" name="kd_transaksi" value="<?php echo $customer['kd_transaksi']; ?>" readonly>
                         </div>
 
                         <div class="form-group">

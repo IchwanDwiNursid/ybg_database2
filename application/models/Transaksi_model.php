@@ -23,23 +23,25 @@ class transaksi_model extends CI_Model
                     `order`.QtyOrder AS 'Qty',
                     `order`.BasePrice AS 'Base Price',
                     `order`.Discount AS 'Disc',
-                    `order`.Brand AS 'Brand',
+                    brand.Brand AS 'Brand',
                     `order`.SKUName AS 'SKU',
                     `order`.AfterDisc AS 'After Disc',
                     `order`.Point AS 'Point gained',
                     `order`.pointclaim AS 'Point claim',
                     `order`.keterangan AS 'Keterangan',
-                    `order`.idvoucher AS 'Nama Voucher' 
+                    `order`.idvoucher AS 'Nama Voucher',
+                    cicilan.status
                 FROM `order`
                 LEFT JOIN customer ON `order`.idCustomer = customer.idCustomer 
                 LEFT JOIN catcust ON `order`.idCategoryCust = catcust.idCategoryCust 
                 LEFT JOIN salesadvisor ON `order`.IdSales = salesadvisor.IdSales 
                 LEFT JOIN paymentmethode ON `order`.idMethode = paymentmethode.idMethode 
                 LEFT JOIN catprod ON `order`.idCategoryProduk = catprod.idCategoryProduk
+                LEFT JOIN brand ON `order`.Brand = brand.idBrand
+                LEFT JOIN cicilan ON cicilan.idOrder = `order`.id
+                WHERE `order`.deleted_at IS NULL
                 ORDER BY `order`.dateTransaction DESC;
         ");
-
-
 
         $res = $query->result_array();
 
@@ -312,7 +314,8 @@ class transaksi_model extends CI_Model
 
     public function simpan($data)
     {
-        return $this->db->insert('order', $data);
+        $this->db->insert('order', $data);
+        return $this->db->insert_id();
     }
 
     public function getTransaksiById($id)
@@ -330,7 +333,28 @@ class transaksi_model extends CI_Model
     public function deleteTransaksi($id)
     {
         $this->db->query("SET foreign_key_checks = 0;");
-        $this->db->delete('order', ['id' => $id]);
+
+        $this->db->where('id', $id);
+        $this->db->update('order', [
+            'deleted_at' => date('Y-m-d H:i:s')
+        ]);
+
         $this->db->query("SET foreign_key_checks = 1;");
+    }
+
+    public function getLastTransactionCode() 
+    {
+        $this->db->select('kd_transaksi');
+        $this->db->from('order');
+        $this->db->order_by('id', 'DESC');
+        $this->db->limit(1);
+
+        $query = $this->db->get();
+
+        if ($query->num_rows() > 0) {
+            return $query->row()->kd_transaksi;
+        } else {
+            return null;
+        }
     }
 }

@@ -68,6 +68,7 @@
                   <th>Ulang Tahun</th>
                   <th>Telp</th>
                   <th>Instagram</th>
+                  <th>Alamat</th>
                   <th>Aksi</th>
                 </tr>
               </thead>
@@ -77,9 +78,10 @@
                     <td><?= $no++; ?></td>
                     <td><?= $customer['FirstName'] ?></td>
                     <td><?= $customer['LastName'] ?></td>
-                    <td><?= $customer['Birthdate'] ?></td>
+                    <td><?= date('d-m-Y', strtotime($customer['Birthdate']))?></td>
                     <td><?= $customer['PhoneNumber'] ?></td>
                     <td><?= $customer['instagram'] ?></td>
+                    <td><?= $customer['Alamat'] ?></td>
                     <td>
                       <a class="btn btn-success" href="<?= base_url() ?>customer/detail/<?= $customer['idCustomer'] ?>">Detail</a>
                       <a class="btn btn-warning" href="<?= base_url() ?>customer/edit/<?= $customer['idCustomer'] ?>">Edit</a>
